@@ -1,50 +1,54 @@
 import React, { useState } from 'react'
-import { api } from '../api'
+import { api } from '../lib/api'
+import { useAuth } from '../state/auth'
+import { useNavigate } from 'react-router-dom'
 
 export default function Login() {
-  const [form, setForm] = useState({ email:'', password:'' })
-  const [result, setResult] = useState(null)
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const { save } = useAuth()
+  const nav = useNavigate()
 
-  function onChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value })
-  }
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   async function onSubmit(e) {
     e.preventDefault()
-    setLoading(true); setError(''); setResult(null)
+    setLoading(true)
+    setError('')
     try {
-      const r = await api.login(form)
-      setResult(r)
-      localStorage.setItem('user', JSON.stringify(r.user || {}))
-    } catch (e) {
-      setError(e.message)
+      const data = await api.login({ email, password })
+      save(data.token, data.user)
+      nav('/validate')
+    } catch (e2) {
+      setError(`${e2.code || 'ERROR'}: ${e2.message}`)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="grid">
-      <form className="card" onSubmit={onSubmit}>
-        <h2>Вход</h2>
-        <label>Email</label>
-        <input type="email" name="email" value={form.email} onChange={onChange} required />
-        <label>Пароль</label>
-        <input type="password" name="password" value={form.password} onChange={onChange} required />
-        <div style={{marginTop:8}}>
-          <button disabled={loading}>{loading ? 'Входим…' : 'Войти'}</button>
+    <div className="card" style={{ maxWidth: 520, margin: '0 auto' }}>
+      <h2>Вход</h2>
+      <form onSubmit={onSubmit}>
+        <div style={{ marginTop: 10 }}>
+          <div className="muted" style={{ marginBottom: 6 }}>Email</div>
+          <input value={email} onChange={e => setEmail(e.target.value)} />
         </div>
-        {error && <p style={{color:'#dc2626'}}>Ошибка: {error}</p>}
-      </form>
 
-      {result && (
-        <div className="card">
-          <h2>Ответ сервера</h2>
-          <pre>{JSON.stringify(result, null, 2)}</pre>
+        <div style={{ marginTop: 10 }}>
+          <div className="muted" style={{ marginBottom: 6 }}>Пароль</div>
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)} />
         </div>
-      )}
+
+        <div style={{ marginTop: 12 }}>
+          <button className="btn primary" disabled={loading} type="submit">
+            {loading ? 'Входим…' : 'Войти'}
+          </button>
+        </div>
+
+        {error && <div style={{ marginTop: 10 }} className="badge">{error}</div>}
+      </form>
     </div>
   )
 }

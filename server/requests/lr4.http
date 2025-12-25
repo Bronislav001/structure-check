@@ -1,0 +1,74 @@
+@baseUrl = http://localhost:8080
+
+############################################################
+### ЛР №4 — CRUD + базовая валидация + обработка ошибок
+### Примечание: token получаем через Login только чтобы иметь доступ к /api/checks
+############################################################
+
+### Register (создать пользователя)
+# @name register
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "name": "Test User",
+  "password": "secret123"
+}
+
+### Login (получить token)
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "secret123"
+}
+
+### (ЛР4.1) CREATE: создать проверку (201)
+# @name createCheck
+POST {{baseUrl}}/api/checks
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "label": "Отчёт 1",
+  "text": "Введение\nТеоретическая часть\nПрактическая часть\nМетодология\nРезультаты\nВыводы\nСписок литературы\nПриложения"
+}
+
+### (ЛР4.2) READ LIST: список (200)
+GET {{baseUrl}}/api/checks
+Authorization: Bearer {{login.response.body.token}}
+
+### (ЛР4.3) READ ONE: получить по id (200)
+GET {{baseUrl}}/api/checks/{{createCheck.response.body.id}}
+Authorization: Bearer {{login.response.body.token}}
+
+### (ЛР4.4) UPDATE: PATCH (200)
+PATCH {{baseUrl}}/api/checks/{{createCheck.response.body.id}}
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "label": "Отчёт 1 (обновлено)",
+  "notes": "Проверка обновления"
+}
+
+### (ЛР4.5) DELETE: удалить (200)
+DELETE {{baseUrl}}/api/checks/{{createCheck.response.body.id}}
+Authorization: Bearer {{login.response.body.token}}
+
+### (ЛР4.6) ВАЛИДАЦИЯ: пустой text -> 400
+POST {{baseUrl}}/api/checks
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "label": "Пустой текст",
+  "text": ""
+}
+
+### (ЛР4.7) ОШИБКА: несуществующий id -> 404
+GET {{baseUrl}}/api/checks/chk_not_exists_123
+Authorization: Bearer {{login.response.body.token}}

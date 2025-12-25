@@ -1,0 +1,69 @@
+@baseUrl = http://localhost:8080
+
+############################################################
+### ЛР №6 — Защита API (JWT) + разграничение доступа
+############################################################
+
+### 1) Без токена -> 401 NO_TOKEN
+GET {{baseUrl}}/api/checks
+
+### Register A
+# @name regA
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "a@example.com",
+  "name": "User A",
+  "password": "secret123"
+}
+
+### Login A
+# @name loginA
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "a@example.com",
+  "password": "secret123"
+}
+
+### Create check as A
+# @name chkA
+POST {{baseUrl}}/api/checks
+Authorization: Bearer {{loginA.response.body.token}}
+Content-Type: application/json
+
+{
+  "label": "A check",
+  "text": "Введение\nТеоретическая часть\nПрактическая часть\nМетодология\nРезультаты\nВыводы\nСписок литературы\nПриложения"
+}
+
+### Register B
+# @name regB
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "b@example.com",
+  "name": "User B",
+  "password": "secret123"
+}
+
+### Login B
+# @name loginB
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "b@example.com",
+  "password": "secret123"
+}
+
+### 2) B пытается получить check A -> 403 FORBIDDEN
+GET {{baseUrl}}/api/checks/{{chkA.response.body.id}}
+Authorization: Bearer {{loginB.response.body.token}}
+
+### 3) Плохой токен -> 401 BAD_TOKEN
+GET {{baseUrl}}/api/checks
+Authorization: Bearer BAD.TOKEN.VALUE

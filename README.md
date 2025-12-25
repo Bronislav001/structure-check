@@ -1,15 +1,20 @@
-# Struct Check — Monorepo (LR2 + LR3)
+## Запуск
 
-Этот репозиторий содержит:
-- `server/` — ЛР‑2: Express‑сервер (health, auth, reports, validate stub)
-- `client/` — ЛР‑3: React/Vite SPA (Эталон, Проверка, Регистрация, Вход)
-
-## Быстрый старт (из корня monorepo)
-
+### 1. Сервер
 ```bash
-npm install                 # установит зависимости и для workspaces
-cp server/.env.example server/.env
-cp client/.env.example client/.env
-
-npm run dev                 # поднимет сервер (8080) и клиент (5173)
+cd server
+npm i
+npm run dev
 ```
+
+### 2. Клиент
+```bash
+cd client
+npm i
+npm run dev
+```
+
+По умолчанию:
+- API: `http://localhost:8080`
+- Client: `http://localhost:5173`
+

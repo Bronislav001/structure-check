@@ -2,28 +2,45 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 
-const healthRoutes = require('./routes/health');
-const authRoutes = require('./routes/auth');
-const reportsRoutes = require('./routes/reports');
+const { initDb } = require('./db');
+const authService = require('./services/authService');
+const { createUsersService } = require('./services/usersService');
+const { createChecksService } = require('./services/checksService');
 
-const app = express();
-app.use(cors());
-app.use(express.json({ limit: '2mb' }));
-app.use('/api/auth', require('./routes/auth'));
-app.use(morgan('dev'));
+const { createAuthController } = require('./controllers/authController');
+const { createChecksController } = require('./controllers/checksController');
 
-app.use('/api/health', healthRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/reports', reportsRoutes);
+const { buildAuthRouter } = require('./routes/auth');
+const { buildChecksRouter } = require('./routes/checks');
+const { buildHealthRouter } = require('./routes/health');
 
-// 404
-app.use((req, res) => res.status(404).json({ message: 'Not found', path: req.originalUrl }));
-
-// error handler
-app.use((err, req, res, next) => {
-  console.error('ERR:', err);
-  res.status(500).json({ message: 'Server error' });
-});
+const { notFound, errorHandler } = require('./middleware/errors');
 
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`API running at http://localhost:${PORT}`));
+
+function main() {
+  const db = initDb();
+  const usersService = createUsersService(db);
+  const checksService = createChecksService(db);
+
+  const authController = createAuthController({ usersService, authService });
+  const checksController = createChecksController({ checksService });
+
+  const app = express();
+  app.use(cors());
+  app.use(express.json({ limit: '1mb' }));
+  app.use(morgan('dev'));
+
+  app.use('/api/health', buildHealthRouter());
+  app.use('/api/auth', buildAuthRouter(authController));
+  app.use('/api/checks', buildChecksRouter(checksController));
+
+  app.use(notFound);
+  app.use(errorHandler);
+
+  app.listen(PORT, () => {
+    console.log(`API listening on http://localhost:${PORT}`);
+  });
+}
+
+main();
