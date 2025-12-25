@@ -43,7 +43,7 @@ export default function Register() {
         </div>
 
         <div style={{ marginTop: 10 }}>
-          <div className="muted" style={{ marginBottom: 6 }}>Пароль (мин 6 символов)</div>
+          <div className="muted" style={{ marginBottom: 6 }}>Пароль (минимум 6 символов)</div>
           <input type="password" value={password} onChange={e => setPassword(e.target.value)} />
         </div>
 
