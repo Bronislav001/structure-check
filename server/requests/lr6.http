@@ -1,13 +1,14 @@
 @baseUrl = http://localhost:8080
 
-############################################################
-### ЛР №6 — Защита API (JWT) + разграничение доступа
-############################################################
+# Проверка, что сервер жив
+GET {{baseUrl}}/api/health
 
-### 1) Без токена -> 401 NO_TOKEN
+
+### 1) Без токена 
 GET {{baseUrl}}/api/checks
 
-### Register A
+
+### A) Register 
 # @name regA
 POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
@@ -18,7 +19,7 @@ Content-Type: application/json
   "password": "secret123"
 }
 
-### Login A
+### A) Login 
 # @name loginA
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
@@ -28,18 +29,26 @@ Content-Type: application/json
   "password": "secret123"
 }
 
-### Create check as A
+
+### A) Create check 
 # @name chkA
 POST {{baseUrl}}/api/checks
-Authorization: Bearer {{loginA.response.body.token}}
 Content-Type: application/json
+Authorization: Bearer {{loginA.response.body.token}}
+
 
 {
   "label": "A check",
   "text": "Введение\nТеоретическая часть\nПрактическая часть\nМетодология\nРезультаты\nВыводы\nСписок литературы\nПриложения"
 }
 
-### Register B
+### A) Список своих проверок 
+GET {{baseUrl}}/api/checks
+Authorization: Bearer {{loginA.response.body.token}}
+
+
+
+### B) Register 
 # @name regB
 POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
@@ -50,7 +59,7 @@ Content-Type: application/json
   "password": "secret123"
 }
 
-### Login B
+### B) Login 
 # @name loginB
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
@@ -60,10 +69,11 @@ Content-Type: application/json
   "password": "secret123"
 }
 
-### 2) B пытается получить check A -> 403 FORBIDDEN
+### 2) B пытается получить check A 
 GET {{baseUrl}}/api/checks/{{chkA.response.body.id}}
 Authorization: Bearer {{loginB.response.body.token}}
 
-### 3) Плохой токен -> 401 BAD_TOKEN
+
+### 3) Плохой токен 
 GET {{baseUrl}}/api/checks
 Authorization: Bearer BAD.TOKEN.VALUE
